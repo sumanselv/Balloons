@@ -3,14 +3,17 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <title>Pop Balloons</title>
+    <title>Pop Balloons - A Calm Interactive Sky Game</title>
+    <meta name="description" content="Pop colorful balloons under a changing sky with sunrise, moonlit nights, fireworks, kites, birds and kind words. A calm, free interactive game.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&display=swap">
+    <!-- Google AdSense: replace every XXXXXXXXXXXXXXXX with your publisher ID (ca-pub-...) -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
     <style>
         :root{color-scheme:light;box-sizing:border-box;--text:#4a5160}
         html,body{height:100%;margin:0;overflow:hidden;background:#fff;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-user-select:none;user-select:none}
-        canvas{position:fixed;inset:0;width:100%;height:100%;touch-action:manipulation;display:block}
+        canvas{position:fixed;top:0;left:0;width:100%;height:calc(100% - var(--bt,0px));touch-action:manipulation;display:block}
         #hud{position:fixed;left:0;right:0;top:0;padding:calc(env(safe-area-inset-top,0px) + 14px) 18px 0;display:flex;justify-content:space-between;align-items:center;color:var(--text);font-size:15px;font-weight:600;pointer-events:none}
         #hint{position:fixed;left:0;right:0;top:46%;text-align:center;color:rgba(255,255,255,.9);text-shadow:0 1px 4px rgba(0,0,0,.3);font-size:20px;font-weight:500;pointer-events:none;transition:opacity .6s}
         #mute{position:fixed;left:calc(env(safe-area-inset-left,0px) + 14px);top:calc(env(safe-area-inset-top,0px) + 12px);width:40px;height:40px;padding:0;border:0;border-radius:50%;background:#f1f3f7;font-size:20px;line-height:1;cursor:pointer;z-index:5;display:flex;align-items:center;justify-content:center}
@@ -39,10 +42,23 @@
         #cstatus.ok{color:#1b7f4a}
         #cstatus.err{color:#c0392b}
         .hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+        #foot{position:fixed;left:0;right:0;bottom:0;z-index:6;display:flex;flex-direction:column;align-items:center;padding-bottom:env(safe-area-inset-bottom,0px);background:rgba(255,255,255,.88);backdrop-filter:blur(6px);box-shadow:0 -1px 8px rgba(0,0,0,.12)}
+        #adbar{display:none;width:100%;max-width:970px;padding:6px 8px 0;box-sizing:border-box}
+        #adbar.on{display:block}
+        #flinks{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px 18px;min-height:34px;padding:0 12px;font:13px/1.2 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#3b4252}
+        #flinks a,#flinks button{color:#3b4252;text-decoration:none;background:none;border:0;padding:0;font:inherit;cursor:pointer}
+        #flinks a:hover,#flinks button:hover{text-decoration:underline}
+        #flinks a:focus-visible,#flinks button:focus-visible{outline:2px solid #4f6bed;outline-offset:2px}
     </style>
 </head>
 <body>
 <canvas id="c" aria-label="Floating balloons. Click or tap a balloon to pop it."></canvas>
+<div id="foot">
+    <div id="adbar">
+        <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" data-ad-slot="XXXXXXXXXX" data-ad-format="auto" data-full-width-responsive="true"></ins>
+    </div>
+    <nav id="flinks" aria-label="Site links"><span>&copy; 2026 Pop Balloons</span><a href="/about.html">About</a><a href="/privacy.html">Privacy Policy</a><button id="flc" type="button">Contact</button></nav>
+</div>
 <button id="mute" type="button" aria-label="Mute sound" aria-pressed="false"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 9v6h4l5 4V5L7 9H3z" fill="#333"/><g class="w" stroke="#333" stroke-width="2" stroke-linecap="round"><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.2 6a8.5 8.5 0 0 1 0 12"/></g><g class="x" stroke="#333" stroke-width="2" stroke-linecap="round"><path d="M16 9.5l5 5M21 9.5l-5 5"/></g></svg></button>
 <div id="hint">Pop the balloons</div>
 <button id="contactBtn" type="button" aria-haspopup="dialog"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>Contact</button>
@@ -79,7 +95,7 @@
         var WORDS=['Hope','Believe','Courage','Joy','Kindness','Dream','Grow','Shine','Breathe','Trust','Gratitude','Peace','Love','Strength','Smile','Be brave','Begin','Wonder','Patience','Faith','Rise','You are enough','Keep going','Stay curious','This too shall pass','You can do it','Optimism','Resilience','Harmony','Compassion','Perseverance','Grace','Balance','Calm','Focus','Create','Laugh','Dance','Forgive','Listen','Imagine','Explore','Thrive','Bloom','Spark','Share','Healing','Freedom','Humility','Sunshine','Be you','Take heart','Stay strong','Just begin','Be gentle','Look up','Choose hope','Light the way','You matter','Never give up','Be present'], words=[], lastW=-1, lastQ=-1, EMOJI=['😊','🌟','❤️','🌈','✨','🌻','🕊️','🌸','💪','🙂','🌞','🎉','💛','🍀','🦋','😄','🤗','🌼','💫','🙌','☀️','💖','🌺','😌'], QUOTES=[['The journey of a thousand miles begins with a single step.','Lao Tzu'],['No act of kindness, no matter how small, is ever wasted.','Aesop'],['Fall seven times, stand up eight.','Japanese proverb'],['The only way to do great work is to love what you do.','Steve Jobs'],['Happiness depends upon ourselves.','Aristotle'],['Out of difficulties grow miracles.','Jean de La Bruyère'],['Courage doesn’t always roar.','Mary Anne Radmacher'],['Small steps still move you forward.',''],['Every day is a fresh start.',''],['You are stronger than you think.',''],['Good things take time, and you’re right on schedule.',''],['Be the reason someone smiles today.',''],['Your best is always enough.',''],['Believe in the magic of new beginnings.',''],['The best way out is always through.','Robert Frost'],['It does not matter how slowly you go as long as you do not stop.','Confucius'],['Well done is better than well said.','Benjamin Franklin'],['Love all, trust a few, do wrong to none.','William Shakespeare'],['In the depth of winter, I finally learned that within me there lay an invincible summer.','Albert Camus'],['He who has a why to live can bear almost any how.','Friedrich Nietzsche'],['You are doing better than you think.',''],['Today is full of possibilities.',''],['Progress, not perfection.',''],['Be kind to yourself.',''],['The best time to start is now.',''],['Joy is found in small moments.',''],['Let your light shine.',''],['One day at a time.',''],['Every storm runs out of rain.',''],['You have already survived every hard day.',''],['Plant seeds of kindness.',''],['Breathe in calm, breathe out worry.',''],['Your effort matters.',''],['Believe in yourself.',''],['Great things never come from comfort zones.',''],['Gratitude turns what we have into enough.',''],['Hope is a good place to begin.',''],['You are exactly where you need to be.',''],['Be the light someone needs today.',''],['Your story is still being written.',''],['Courage grows one small step at a time.',''],['Even the darkest night ends with a sunrise.',''],['Kind words cost nothing and mean everything.',''],['Start where you are, use what you have.',''],['You are capable of amazing things.',''],['Today is a good day to try again.',''],['Little by little, a little becomes a lot.',''],['Trust the timing of your life.',''],['Breathe. You\u2019ve got this.',''],['Be proud of how far you\u2019ve come.',''],['Happiness is a direction, not a place.',''],['Make today so good that tomorrow gets jealous.',''],['Every expert was once a beginner.',''],['The sun always rises again.',''],['Be gentle with yourself and brave with the world.',''],['Good things are coming your way.',''],['Be a voice of hope today.',''],['You make the world brighter.',''],['Dream it. Believe it. Build it.',''],['Small acts of kindness change big things.',''],['Today I choose joy.',''],['Brave doesn\u2019t mean fearless. It means going anyway.',''],['An investment in knowledge pays the best interest.','Benjamin Franklin'],['Do what you can, with what you have, where you are.','Theodore Roosevelt'],['What you do makes a difference.','Jane Goodall']];
 
         function resize(){
-            dpr=Math.min(window.devicePixelRatio||1,2); W=innerWidth; H=innerHeight;
+            dpr=Math.min(window.devicePixelRatio||1,2); W=cv.clientWidth||innerWidth; H=cv.clientHeight||innerHeight;
             cv.width=W*dpr; cv.height=H*dpr; g.setTransform(dpr,0,0,dpr,0,0);
         }
         function mix(c,t,a){return 'rgb('+Math.round(c[0]+(t-c[0])*a)+','+Math.round(c[1]+(t-c[1])*a)+','+Math.round(c[2]+(t-c[2])*a)+')';}
@@ -221,6 +237,11 @@
         function openContact(){ cpage.hidden=false; cstatus.textContent=''; cstatus.className=''; cname.focus(); }
         function closeContact(){ cpage.hidden=true; contactBtn.focus(); showMute(); }
         contactBtn.addEventListener('click',openContact);
+        document.getElementById('flc').addEventListener('click',openContact);
+        var foot=document.getElementById('foot'), adbar=document.getElementById('adbar'), adins=adbar.querySelector('ins');
+        if(adins&&adins.getAttribute('data-ad-client').indexOf('XXXX')<0){ adbar.className='on'; try{ (window.adsbygoogle=window.adsbygoogle||[]).push({}); }catch(e){} }
+        function fitFoot(){ document.documentElement.style.setProperty('--bt',foot.offsetHeight+'px'); resize(); }
+        if(window.ResizeObserver){ new ResizeObserver(fitFoot).observe(foot); } else { fitFoot(); }
         document.getElementById('cclose').addEventListener('click',closeContact);
         cpage.addEventListener('pointerdown',function(e){ if(e.target===cpage) closeContact(); });
         addEventListener('keydown',function(e){ if(e.key==='Escape'&&!cpage.hidden) closeContact(); });
